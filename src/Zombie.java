@@ -1,5 +1,8 @@
 public class Zombie extends Entity {
 
+    private boolean isDaytime = false;
+    private int daySlowCounter = 0;
+
     public Zombie(int x, int y) {
         super(x, y, "\uD83E\uDDDF"); // 🧟
     }
@@ -9,30 +12,24 @@ public class Zombie extends Entity {
         super(infectedHuman.getX(), infectedHuman.getY(), "\uD83E\uDDDF");
     }
 
+    // Called by GamePanel before move(), same pattern as Human.setVisibleCures().
+    public void setDaytime(boolean isDaytime) {
+        this.isDaytime = isDaytime;
+    }
+
+    // Package-private: only the strategy classes need this, it's an
+    // implementation detail of HOW slowing works, not something outside
+    // code should be able to read or reset directly.
+    boolean consumeSlowTick() {
+        daySlowCounter++;
+        if (daySlowCounter < 3) return false;
+        daySlowCounter = 0;
+        return true;
+    }
 
     @Override
     public void move(int gridWidth, int gridHeight, Entity[] allEntities, boolean[][] blocked) {
-        // Find the nearest Human
-        Human target = Entity.findNearest(allEntities, Human.class, gridX, gridY);
-        if (target == null) {
-            System.out.println("Z: No target found");
-            return;
-        }
-        
-        int [] next = PathFinder.findNextStep(gridX, gridY, target.getX(), target.getY(), blocked, gridWidth);
-        if (next == null) {
-            System.out.println("Z: no path from (" + gridX + "," + gridY + ") to (" + target.getX() + "," + target.getY() + ")");
-            return; // No valid path found
-        }
-        int newX = next[0];
-        int newY = next[1];
-
-        if (!Entity.isTileOccupiedBy(Zombie.class, newX, newY, allEntities, this)) {
-            // Move to the next cell
-            System.out.println("Z: (" + gridX + "," + gridY + ") -> (" + newX + "," + newY + ")");
-            planPosition(newX, newY);
-        } else {
-            System.out.println("Z: (" + gridX + "," + gridY + ") blocked by zombie at (" + newX + "," + newY + ")");
-        }
+        ZombieStrategy strategy = isDaytime ? new DayChaseStrategy() : new NightChaseStrategy();
+        strategy.move(this, gridWidth, gridHeight, allEntities, blocked);
     }
 }

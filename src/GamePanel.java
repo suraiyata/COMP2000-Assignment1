@@ -13,7 +13,7 @@ public class GamePanel extends JPanel {
 
     private static final int GRID_SIZE = 18;
     private static final int CELL_SIZE = 48;
-    private static final int DAY_LENGTH_TICKS = 300; // how many render ticks make one full day/night cycle
+    private static final int DAY_LENGTH_TICKS = 400; // how many render ticks make one full day/night cycle
 
     private final List<Entity> entities = new ArrayList<>();
     private final List<Building> buildings = new ArrayList<>();
@@ -215,6 +215,8 @@ public class GamePanel extends JPanel {
         for (Entity e : entities) {
             if (e instanceof Human) {
                 ((Human) e).setVisibleCures(cures);
+            } else if (e instanceof Zombie) {
+                ((Zombie) e).setDaytime(getDayProgress() < 0.5);
             }
             e.move(GRID_SIZE, GRID_SIZE, snapshot, blocked);
         }
