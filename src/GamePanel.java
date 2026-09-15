@@ -195,10 +195,19 @@ private void notifyListeners(String message) {
                             int dx = Math.abs(other.getX() - h.getX());
                             int dy = Math.abs(other.getY() - h.getY());
                             if (dx <= 1 && dy <= 1 && !curedZombies.contains(other)) {
-                                curedZombies.add((Zombie) other);
-                                h.useCure();
-                                curesUsedCount++;
-                                notifyListeners("A zombie was cured and became human again");
+                                try {
+                                    if (!h.hasCure()) {
+                                        throw new InvalidCureStateException(
+                                            "Attempted to cure a zombie using a human with no cure at (" + h.getX() + "," + h.getY() + ")"
+                                        );
+                                    }
+                                    curedZombies.add((Zombie) other);
+                                    h.useCure();
+                                    curesUsedCount++;
+                                    notifyListeners("A zombie was cured and became human again");
+                                } catch (InvalidCureStateException ex) {
+                                    notifyListeners("Cure attempt failed: " + ex.getMessage());
+                                }
                                 break;
                             }
                         }
