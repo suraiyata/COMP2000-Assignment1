@@ -21,6 +21,9 @@ public class Main {
         }
         ClockIndicator clockIndicator = new ClockIndicator(gamePanel);
 
+        EventLogPanel eventLog = new EventLogPanel();
+        gamePanel.addListener(eventLog);
+
         int worldSize = gamePanel.getPreferredSize().width;
 
         // Layer the clock indicator on top of the game world, in the corner
@@ -70,6 +73,7 @@ public class Main {
         sidebar.setPreferredSize(new Dimension(240, worldSize));
         sidebar.add(infoLabel, BorderLayout.NORTH);
         sidebar.add(buttonWrapper, BorderLayout.CENTER);
+        sidebar.add(eventLog, BorderLayout.SOUTH);
 
         frame.setLayout(new BorderLayout());
         frame.add(sidebar, BorderLayout.WEST);

@@ -10,6 +10,17 @@ public class GamePanel extends JPanel {
     private boolean gameOver = false;
     private String winnerText = "";
     private int curesUsedCount = 0;
+    private final List<SimulationListener> listeners = new ArrayList<>();
+
+public void addListener(SimulationListener listener) {
+    listeners.add(listener);
+}
+
+private void notifyListeners(String message) {
+    for (SimulationListener l : listeners) {
+        l.onEvent(message);
+    }
+}
 
     private static final int GRID_SIZE = 18;
     private static final int CELL_SIZE = 48;
@@ -43,10 +54,13 @@ public class GamePanel extends JPanel {
         if (getZombieCount() == 0) {
             gameOver = true;
             winnerText = "Humans Win!";
+            notifyListeners("Simulation ended — Humans win!");
         } else if (getHumanCount() == 0) {
             gameOver = true;
             winnerText = "Zombies Win!";
+            notifyListeners("Simulation ended — Zombies win!");
         }
+    
     }
 
     // Fills a 2D array with tile codes: 0 = plain grass, 1 = dark tuft,
@@ -162,6 +176,7 @@ public class GamePanel extends JPanel {
                     if (!h.hasCure()) {
                         h.giveCure();
                         pickedCures.add(c);
+                        notifyListeners("A human picked up a cure");
                         break;
                     }
                 }
@@ -183,6 +198,7 @@ public class GamePanel extends JPanel {
                                 curedZombies.add((Zombie) other);
                                 h.useCure();
                                 curesUsedCount++;
+                                notifyListeners("A zombie was cured and became human again");
                                 break;
                             }
                         }
@@ -283,6 +299,7 @@ public class GamePanel extends JPanel {
             newZombie.syncRenderPosition(h.getRenderX(), h.getRenderY());
             entities.remove(h);
             entities.add(newZombie);
+            notifyListeners("A human was infected");
         }
     }
 
