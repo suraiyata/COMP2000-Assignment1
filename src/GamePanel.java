@@ -10,6 +10,12 @@ public class GamePanel extends JPanel {
     private boolean gameOver = false;
     private String winnerText = "";
     private int curesUsedCount = 0;
+    private boolean paused = false;
+
+public void setPaused(boolean paused) {
+    this.paused = paused;
+    repaint();
+}
     private final List<SimulationListener> listeners = new ArrayList<>();
 
 public void addListener(SimulationListener listener) {
@@ -149,7 +155,7 @@ private int randomSpawnInterval() {
         dayNightTick = 0;
         cureSpawnCounter = 0;
         nextCureSpawnThreshold = randomSpawnInterval();
-        gameOver = false;
+        paused = false;
         winnerText = "";
         curesUsedCount = 0;
         repaint();
@@ -348,6 +354,8 @@ private int randomSpawnInterval() {
 
         if (gameOver) {
             drawEndScreen(g2);
+        } else if (paused) {
+            drawPausedOverlay(g2);
         }
     }
 
@@ -477,5 +485,23 @@ private int randomSpawnInterval() {
         FontMetrics statsFm = g2.getFontMetrics();
         int statsWidth = statsFm.stringWidth(stats);
         g2.drawString(stats, (w - statsWidth) / 2, h / 2 + 24);
+    }
+
+private void drawPausedOverlay(Graphics2D g2) {
+    int w = GRID_SIZE * CELL_SIZE;
+    int h = GRID_SIZE * CELL_SIZE;
+
+    g2.setColor(new Color(0, 0, 0, 130));
+    g2.fillRect(0, 0, w, h);
+
+    String text = "PAUSED";
+    g2.setFont(new Font("SansSerif", Font.BOLD, 36));
+    FontMetrics fm = g2.getFontMetrics();
+    int textWidth = fm.stringWidth(text);
+    int x = (w - textWidth) / 2;
+    int y = h / 2;
+
+    g2.setColor(Color.WHITE);
+    g2.drawString(text, x, y);
     }
 }

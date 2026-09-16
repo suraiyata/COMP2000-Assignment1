@@ -109,10 +109,12 @@ public class Main {
                 logicTimer.stop();
                 renderTimer.stop();
                 playButton.setText("Play");
+                gamePanel.setPaused(true);
             } else {
                 logicTimer.start();
                 renderTimer.start();
                 playButton.setText("Pause");
+                gamePanel.setPaused(false);
             }
             running[0] = !running[0];
         });
