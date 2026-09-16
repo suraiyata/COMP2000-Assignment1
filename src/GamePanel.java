@@ -186,12 +186,10 @@ private void notifyListeners(String message) {
 
         // Part 2: any cure-carrier adjacent to a zombie cures it.
         List<Zombie> curedZombies = new ArrayList<>();
-        for (Entity e : entities) {
-            if (e instanceof Human) {
-                Human h = (Human) e;
-                if (h.hasCure()) {
-                    for (Entity other : entities) {
-                        if (other instanceof Zombie) {
+        for (Human h : new EntitiesOfType<>(entities, Human.class)) {
+            if (h.hasCure()) {
+                for (Entity other : entities) {
+                    if (other instanceof Zombie) {
                             int dx = Math.abs(other.getX() - h.getX());
                             int dy = Math.abs(other.getY() - h.getY());
                             if (dx <= 1 && dy <= 1 && !curedZombies.contains(other)) {
@@ -214,7 +212,6 @@ private void notifyListeners(String message) {
                     }
                 }
             }
-        }
 
         // Part 3: convert each cured zombie into a human.
         for (Zombie z : curedZombies) {
@@ -313,15 +310,11 @@ private void notifyListeners(String message) {
     }
 
     public int getHumanCount() {
-        int count = 0;
-        for (Entity e : entities) if (e instanceof Human) count++;
-        return count;
+        return (int) entities.stream().filter(e -> e instanceof Human).count();
     }
-
+    
     public int getZombieCount() {
-        int count = 0;
-        for (Entity e : entities) if (e instanceof Zombie) count++;
-        return count;
+        return (int) entities.stream().filter(e -> e instanceof Zombie).count();
     }
 
     public double getDayProgress() {
