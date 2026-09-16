@@ -22,7 +22,7 @@ public class Zombie extends Entity {
     // code should be able to read or reset directly.
     boolean consumeSlowTick() {
         daySlowCounter++;
-        if (daySlowCounter < 3) return false;
+        if (daySlowCounter < 4) return false;
         daySlowCounter = 0;
         return true;
     }

@@ -34,9 +34,15 @@ private void notifyListeners(String message) {
     private int dayNightTick = 0;
     private int[][] background;
 
-    private static final int CURE_CAP = 6;           // never have more than this many on the map
-    private static final int CURE_SPAWN_EVERY = 10;  // spawn a new cure every N logic steps
-    private int cureSpawnCounter = 0;
+    private static final int CURE_CAP = 10;           // never have more than this many on the map
+    private static final int MIN_CURE_SPAWN_INTERVAL = 5;   // fastest possible gap between spawns
+private static final int MAX_CURE_SPAWN_INTERVAL = 15;  // slowest possible gap between spawns
+private int cureSpawnCounter = 0;
+private int nextCureSpawnThreshold = randomSpawnInterval();
+
+private int randomSpawnInterval() {
+    return MIN_CURE_SPAWN_INTERVAL + rand.nextInt(MAX_CURE_SPAWN_INTERVAL - MIN_CURE_SPAWN_INTERVAL + 1);
+}
 
     public int getCureCount() {
         return cures.size();
@@ -144,6 +150,7 @@ private void notifyListeners(String message) {
 
         dayNightTick = 0;
         cureSpawnCounter = 0;
+        nextCureSpawnThreshold = randomSpawnInterval();
         gameOver = false;
         winnerText = "";
         curesUsedCount = 0;
@@ -152,17 +159,20 @@ private void notifyListeners(String message) {
 
     private void spawnCureIfNeeded() {
         cureSpawnCounter++;
-        if (cureSpawnCounter < CURE_SPAWN_EVERY) return;
+        if (cureSpawnCounter < nextCureSpawnThreshold) return;
         cureSpawnCounter = 0;
-
+        nextCureSpawnThreshold = randomSpawnInterval();
+    
         if (cures.size() >= CURE_CAP) return;
-
+    
         try {
             Point p = findFreeCell(1000);
             cures.add(new Cure(p.x, p.y));
+            notifyListeners("A new cure appeared on the map");
         } catch (WorldSetupException e) {
-            // Grid is too crowded — skip this spawn.
+            // Grid is too crowded, skip this spawn.
         }
+    
     }
 
     private void handleCures() {
@@ -191,7 +201,7 @@ private void notifyListeners(String message) {
                     if (other instanceof Zombie) {
                             int dx = Math.abs(other.getX() - h.getX());
                             int dy = Math.abs(other.getY() - h.getY());
-                            if (dx <= 1 && dy <= 1 && !curedZombies.contains(other)) {
+                            if (dx <= 2 && dy <= 2 && !curedZombies.contains(other)) {
                                 try {
                                     if (!h.hasCure()) {
                                         throw new InvalidCureStateException(

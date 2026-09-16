@@ -9,7 +9,7 @@ public class Human extends Entity implements Infectable {
     private static final Random rand = new Random();
 
     private List<Cure> visibleCures = new ArrayList<>(); 
-    private static final int DETECTION_RADIUS = 5;
+    private static final int DETECTION_RADIUS = 8;
     public List<Cure> getVisibleCures() {
         return visibleCures;
     }
