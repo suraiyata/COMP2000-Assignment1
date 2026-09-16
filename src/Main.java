@@ -97,6 +97,7 @@ public class Main {
                 renderTimer.stop();
                 running[0] = false;
                 playButton.setText("Play");
+                gamePanel.repaint();
             }
         });
 

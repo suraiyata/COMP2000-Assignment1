@@ -50,7 +50,6 @@ private void notifyListeners(String message) {
 
     private void checkGameOver() {
         if (gameOver) return;
-
         if (getZombieCount() == 0) {
             gameOver = true;
             winnerText = "Humans Win!";
