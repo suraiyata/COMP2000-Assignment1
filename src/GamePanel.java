@@ -129,22 +129,20 @@ private int randomSpawnInterval() {
         int placed = 0;
         while (placed < 18) {
             Point p = findFreeCell(1000);
-            entities.add(new Human(p.x, p.y));
-            placed++;
+            entities.add(EntityFactory.createHuman(p.x, p.y));            placed++;
         }
 
         placed = 0;
         while (placed < 5) {
             Point p = findFreeCell(1000);
-            entities.add(new Zombie(p.x, p.y));
-            placed++;
+            entities.add(EntityFactory.createZombie(p.x, p.y));            placed++;
         }
 
         cures.clear();
         int placedCures = 0;
         while (placedCures < 6) {
             Point p = findFreeCell(1000);
-            cures.add(new Cure(p.x, p.y));
+            cures.add(EntityFactory.createCure(p.x, p.y));            
             placedCures++;
         }
 
@@ -167,7 +165,7 @@ private int randomSpawnInterval() {
     
         try {
             Point p = findFreeCell(1000);
-            cures.add(new Cure(p.x, p.y));
+            cures.add(EntityFactory.createCure(p.x, p.y));
             notifyListeners("A new cure appeared on the map");
         } catch (WorldSetupException e) {
             // Grid is too crowded, skip this spawn.
@@ -224,8 +222,7 @@ private int randomSpawnInterval() {
 
         // Part 3: convert each cured zombie into a human.
         for (Zombie z : curedZombies) {
-            Human newHuman = new Human(z.getX(), z.getY());
-            newHuman.syncRenderPosition(z.getRenderX(), z.getRenderY());
+            Human newHuman = EntityFactory.convertToHuman(z);
             entities.remove(z);
             entities.add(newHuman);
         }
@@ -310,8 +307,7 @@ private int randomSpawnInterval() {
         }
         for (Entity e : toConvert) {
             Human h = (Human) e;
-            Zombie newZombie = new Zombie(h);
-            newZombie.syncRenderPosition(h.getRenderX(), h.getRenderY());
+            Zombie newZombie = EntityFactory.convertToZombie(h);
             entities.remove(h);
             entities.add(newZombie);
             notifyListeners("A human was infected");
