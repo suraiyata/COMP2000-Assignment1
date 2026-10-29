@@ -7,14 +7,18 @@ import javax.swing.*;
 
 public class GamePanel extends JPanel {
 
-    private boolean gameOver = false;
+    private GameState state = new RunningState();
     private String winnerText = "";
     private int curesUsedCount = 0;
-    private boolean paused = false;
+
+public void setState(GameState newState) {
+    this.state = newState;
+    repaint();
+}
 
 public void setPaused(boolean paused) {
-    this.paused = paused;
-    repaint();
+    if (state.isGameOver()) return; // can't pause/resume once the game has ended
+    setState(paused ? new PausedState() : new RunningState());
 }
     private final List<SimulationListener> listeners = new ArrayList<>();
 
@@ -61,17 +65,15 @@ private int randomSpawnInterval() {
     }
 
     private void checkGameOver() {
-        if (gameOver) return;
         if (getZombieCount() == 0) {
-            gameOver = true;
             winnerText = "Humans Win!";
             notifyListeners("Simulation ended — Humans win!");
+            setState(new GameOverState());
         } else if (getHumanCount() == 0) {
-            gameOver = true;
             winnerText = "Zombies Win!";
             notifyListeners("Simulation ended — Zombies win!");
+            setState(new GameOverState());
         }
-    
     }
 
     // Fills a 2D array with tile codes: 0 = plain grass, 1 = dark tuft,
@@ -108,7 +110,7 @@ private int randomSpawnInterval() {
     }
 
     public boolean isGameOver() {
-        return gameOver;
+        return state.isGameOver();
     }
 
     private boolean isBlocked(int col, int row) {
@@ -155,7 +157,7 @@ private int randomSpawnInterval() {
         dayNightTick = 0;
         cureSpawnCounter = 0;
         nextCureSpawnThreshold = randomSpawnInterval();
-        paused = false;
+        state = new RunningState();       
         winnerText = "";
         curesUsedCount = 0;
         repaint();
@@ -235,7 +237,11 @@ private int randomSpawnInterval() {
     }
 
     public void step() {
-        if (gameOver) return;
+        state.step(this);
+    }
+
+    // The real simulation logic for one tick. Only RunningState ever calls this.
+    public void runSimulationStep() {
         boolean[][] blocked = computeBlockedGrid();
         Entity[] snapshot = entities.toArray(new Entity[0]);
 
@@ -277,7 +283,6 @@ private int randomSpawnInterval() {
         spawnCureIfNeeded();
         checkGameOver();
     }
-
     // Fast render tick: advances day/night and glides entities toward their targets
     public void tick() {
         dayNightTick = (dayNightTick + 1) % DAY_LENGTH_TICKS;
@@ -331,6 +336,17 @@ private int randomSpawnInterval() {
     public double getDayProgress() {
         return dayNightTick / (double) DAY_LENGTH_TICKS;
     }
+    public String getWinnerText() {
+        return winnerText;
+    }
+
+    public int getCuresUsedCount() {
+        return curesUsedCount;
+    }
+
+    public int getWorldPixelSize() {
+        return GRID_SIZE * CELL_SIZE;
+    }
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -352,11 +368,7 @@ private int randomSpawnInterval() {
         drawEntities(g2);
         drawNightOverlay(g2, t);
 
-        if (gameOver) {
-            drawEndScreen(g2);
-        } else if (paused) {
-            drawPausedOverlay(g2);
-        }
+        state.render(g2, this);
     }
 
     // Draws the sun during the day half of the cycle, the moon during the night half,
@@ -465,43 +477,5 @@ private int randomSpawnInterval() {
 
             g2.drawString(emoji, textX, textY);
         }
-    }
-
-    private void drawEndScreen(Graphics2D g2) {
-        int w = GRID_SIZE * CELL_SIZE;
-        int h = GRID_SIZE * CELL_SIZE;
-
-        g2.setColor(new Color(0, 0, 0, 170));
-        g2.fillRect(0, 0, w, h);
-
-        g2.setFont(new Font("SansSerif", Font.BOLD, 40));
-        FontMetrics titleFm = g2.getFontMetrics();
-        int titleWidth = titleFm.stringWidth(winnerText);
-        g2.setColor(Color.WHITE);
-        g2.drawString(winnerText, (w - titleWidth) / 2, h / 2 - 10);
-
-        String stats = "Cures used: " + curesUsedCount;
-        g2.setFont(new Font("SansSerif", Font.PLAIN, 18));
-        FontMetrics statsFm = g2.getFontMetrics();
-        int statsWidth = statsFm.stringWidth(stats);
-        g2.drawString(stats, (w - statsWidth) / 2, h / 2 + 24);
-    }
-
-private void drawPausedOverlay(Graphics2D g2) {
-    int w = GRID_SIZE * CELL_SIZE;
-    int h = GRID_SIZE * CELL_SIZE;
-
-    g2.setColor(new Color(0, 0, 0, 130));
-    g2.fillRect(0, 0, w, h);
-
-    String text = "PAUSED";
-    g2.setFont(new Font("SansSerif", Font.BOLD, 36));
-    FontMetrics fm = g2.getFontMetrics();
-    int textWidth = fm.stringWidth(text);
-    int x = (w - textWidth) / 2;
-    int y = h / 2;
-
-    g2.setColor(Color.WHITE);
-    g2.drawString(text, x, y);
     }
 }
